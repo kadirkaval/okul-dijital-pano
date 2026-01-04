@@ -1,0 +1,223 @@
+/* --- (Responsive Değil, Scalable) --- */
+:root {
+  --bg-color: #eef1f5;
+  --box-bg: #ffffff;
+  --header-blue: #0d47a1;
+  --header-cyan: #0097a7;
+  --header-purple: #7b1fa2;
+  --header-red: #d32f2f;
+  --active-row: #ffe082;
+
+  /* KRİTİK NOKTA: Ekranın kısa kenarının %1.4'ünü baz al */
+  /* Ekran küçülürse fontlar da küçülür, yerleşim bozulmaz */
+  font-size: 1.4vmin;
+}
+
+html,
+body {
+  height: 100vh; /* Tam ekran yüksekliği */
+  width: 100vw;
+  margin: 0;
+  overflow: hidden; /* Scroll çubuğunu tamamen yasakla */
+  background-color: var(--bg-color);
+  font-family: "Segoe UI", sans-serif;
+}
+
+.container-fluid {
+  height: 100%;
+  padding: 1vmin; /* Boşluklar da orantılı */
+  padding-bottom: 5vmin; /* Footer için yer */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* --- GRID YAPISI --- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 20% 55% 25%; /* Sütun oranları */
+  gap: 1vmin;
+  height: 100%;
+  overflow: hidden;
+}
+
+.col-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1vmin;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* --- KART TASARIMI --- */
+.pano-card {
+  background: var(--box-bg);
+  border-radius: 1vmin;
+  box-shadow: 0 0.5vmin 1vmin rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* Flexbox taşma sorununu çözer */
+}
+
+.card-header {
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 0.6vmin;
+  font-size: 1.2rem; /* root font-size'a göre */
+  text-transform: uppercase;
+  flex-shrink: 0; /* Asla küçülmesin */
+  white-space: nowrap;
+}
+
+.card-body {
+  flex: 1 1 auto; /* Esnek alan */
+  display: flex;
+  flex-direction: column;
+  padding: 0.5vmin !important; /* Bootstrap padding'ini ez */
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+.text-center-box {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* --- ORTA SÜTUN DENGESİ --- */
+.slider-wrapper {
+  flex: 3.5;
+} /* Resim alanı */
+.schedule-area {
+  flex: 5;
+} /* Ders Programı alanı */
+.time-out-card {
+  flex: 1.5;
+} /* Sayaç alanı */
+
+/* --- ÖZEL METİNLER --- */
+.clock-box {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+}
+.date-box {
+  font-size: 1.1rem;
+  color: #555;
+}
+.weather-temp {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--header-cyan);
+  line-height: 1;
+}
+.countdown-box {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #d32f2f;
+  font-family: "Courier New", monospace;
+}
+
+/* --- TABLOLAR --- */
+.time-table,
+.duty-table {
+  width: 100%;
+  border-collapse: collapse;
+  height: 100%; /* Tabloyu alana yay */
+  table-layout: fixed; /* Sütun genişliklerini sabitle */
+}
+
+.time-table th,
+.duty-table th {
+  background: #eee;
+  padding: 0.5vmin;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.time-table td,
+.duty-table td {
+  border-bottom: 1px solid #ddd;
+  padding: 0; /* İçerik sığsın diye padding sıfır */
+  text-align: center;
+  vertical-align: middle;
+  font-size: 1rem;
+  white-space: nowrap; /* Yazılar alt satıra geçmesin */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Sığmazsa ... koysun */
+}
+
+.active-slot {
+  background-color: #f0e4c6 !important;
+  font-weight: bold;
+  border-left: 0.8vmin solid #d32f2f;
+}
+
+/* --- DUYURU --- */
+.duyuru-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.duyuru-text {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+.duyuru-text.aktif {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* --- RENKLER --- */
+.bg-blue {
+  background-color: var(--header-blue) !important;
+}
+.bg-cyan {
+  background-color: var(--header-cyan) !important;
+}
+.bg-purple {
+  background-color: var(--header-purple) !important;
+}
+.bg-red {
+  background-color: var(--header-red) !important;
+}
+.bg-light-gray {
+  background-color: #f8f9fa;
+}
+
+/* --- FOOTER --- */
+.site-footer {
+  height: 4vmin;
+  background: linear-gradient(90deg, #0d47a1 0%, #1565c0 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2vmin;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1050;
+  border-top: 0.4vmin solid #fbc02d;
+  font-size: 0.9rem;
+}
+
+/* Listeler */
+.list-group-item {
+  background: transparent;
+  padding: 0.5vmin 1vmin;
+  font-size: 1rem;
+}

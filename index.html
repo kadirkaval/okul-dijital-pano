@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Okul Dijital Panosu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="main-grid">
+
+            <div class="col-panel">
+                <div class="pano-card" style="flex: 0.8;">
+                    <div class="card-header bg-cyan">SAAT & TARİH</div>
+                    <div class="card-body text-center-box">
+                        <i class="bi bi-clock fw-bold" style="font-size: 3rem; color: var(--header-blue);"></i>
+                        <div class="clock-box" id="liveClock">--:--</div>
+                        <div class="date-box fw-semibold" id="dateTime">--.--.2025</div>
+                    </div>
+                </div>
+
+                <div class="pano-card" style="flex: 1;">
+                    <div class="card-header bg-success">HAVA DURUMU</div>
+                    <div class="card-body text-center-box">
+                        <img id="js-weather-icon" src="https://openweathermap.org/img/wn/02d@2x.png"
+                            style="width: 8vmin;">
+                        <div id="js-weather-temp" class="weather-temp">--°</div>
+                        <div id="js-weather-desc" class="text-secondary fw-bold">Yükleniyor</div>
+                    </div>
+                </div>
+
+                <div class="pano-card bg-light-gray" style="flex: 2;">
+                    <div class="card-header bg-red">DUYURULAR</div>
+                    <div class="card-body">
+                        <div class="duyuru-container">
+                            <div id="duyuru-metni" class="duyuru-text">
+                                Duyurular yükleniyor...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-panel">
+                <div class="pano-card slider-wrapper">
+                    <div id="carouselExample" class="carousel slide h-100" data-bs-ride="carousel">
+                        <div class="carousel-inner h-100" id="new-foto">
+                            <div class="carousel-item active h-100">
+                                <img src="https://picsum.photos/1200/600" class="d-block w-100 h-100"
+                                    style="object-fit: cover;">
+                                <div class="carousel-caption d-none d-md-block"
+                                    style="background: rgba(0,0,0,0.5); border-radius: 10px;">
+                                    <h5>Okul Dijital Pano Sistemi</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pano-card schedule-area">
+                    <div class="card-header bg-blue">DERS PROGRAMI</div>
+                    <div class="card-body">
+                        <table class="time-table">
+                            <thead>
+                                <tr>
+                                    <th>Ders</th>
+                                    <th>Giriş</th>
+                                    <th>Çıkış</th>
+                                    <th>Süre</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pano-card bg-light-gray time-out-card">
+                    <div class="card-header bg-red">KALAN SÜRE</div>
+                    <div class="card-body text-center-box">
+                        <div class="status-text fw-bold" id="bellStatus">Kontrol Ediliyor...</div>
+                        <div class="countdown-box" id="countdown">--:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-panel">
+                <div class="pano-card" style="flex: 2;">
+                    <div class="card-header bg-blue">NÖBETÇİ ÖĞRETMENLER</div>
+                    <div class="card-body">
+                        <div class="border-bottom bg-light p-1 text-center">
+                            <small class="text-muted fw-bold">Nöbetçi Mdr. Yrd:</small>
+                            <span id="amir-box" class="fw-bold text-danger">-</span>
+                        </div>
+                        <div style="flex-grow: 1; overflow-y: auto;">
+                            <table class="duty-table">
+                                <tbody id="duty-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pano-card" style="flex: 1;">
+                    <div class="card-header bg-red">RAPORLU / İZİNLİ</div>
+                    <div class="card-body" style="overflow-y: auto;">
+                        <ul id="raporlu-listesi" class="list-group list-group-flush w-100"></ul>
+                    </div>
+                </div>
+
+                <div class="pano-card" style="flex: 1;">
+                    <div class="card-header bg-purple">BELİRLİ GÜNLER</div>
+                    <div class="card-body" style="overflow-y: auto;">
+                        <ul id="ozel-gun-listesi" class="list-group list-group-flush w-100 text-center"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-logo">Makif Bilişim Teknolojileri - Okul Dijital Panosu v1.0</div>
+        <div class="footer-school-name fw-semibold fs-4">BORSA İSTANBUL MEHMET AKİF ERSOY M.T.A.L</div>
+        <div class="footer-creator text-reset" id="author">Hazırlayan:</div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
