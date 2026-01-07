@@ -153,7 +153,11 @@ body {
   overflow: hidden;
   text-overflow: ellipsis; /* Sığmazsa ... koysun */
 }
-
+#nobetci-table td, #nobetci-table th {
+text-align: start;
+padding: 1vmin;
+font-weight: 500;
+}
 .active-slot {
   background-color: #f0e4c6 !important;
   font-weight: bold;
