@@ -212,9 +212,12 @@ body {
   width: 100%;
   z-index: 1050;
   border-top: 0.4vmin solid #fbc02d;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
-
+.footer-school-name {
+  font-weight: 600;
+  font-size: 2rem;
+}
 /* Listeler */
 .list-group-item {
   background: transparent;
