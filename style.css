@@ -199,7 +199,7 @@ body {
 
 /* --- FOOTER --- */
 .site-footer {
-  height: 4vmin;
+  height: 6vmin;
   background: linear-gradient(90deg, #0d47a1 0%, #1565c0 100%);
   color: white;
   display: flex;
