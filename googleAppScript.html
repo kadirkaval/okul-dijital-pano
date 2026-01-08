@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Okul Dijital Panosu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        /* --- TASARIM KODLARI (CSS) --- */
+        :root { --bg-color: #eef1f5; --box-bg: #ffffff; --header-blue: #0d47a1; --header-cyan: #0097a7; --header-purple: #7b1fa2; --header-red: #d32f2f; --active-row: #ffe082; font-size: 1.4vmin; }
+        html, body { height: 100vh; width: 100vw; margin: 0; overflow: hidden; background-color: var(--bg-color); font-family: "Segoe UI", sans-serif; }
+        .container-fluid { height: 100%; padding: 1vmin; padding-bottom: 5vmin; display: flex; flex-direction: column; box-sizing: border-box; }
+        .main-grid { display: grid; grid-template-columns: 20% 55% 25%; gap: 1vmin; height: 100%; overflow: hidden; }
+        .col-panel { display: flex; flex-direction: column; gap: 1vmin; height: 100%; overflow: hidden; }
+        .pano-card { background: var(--box-bg); border-radius: 1vmin; box-shadow: 0 0.5vmin 1vmin rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+        .card-header { color: white; font-weight: bold; text-align: center; padding: 0.6vmin; font-size: 1.2rem; text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+        .card-body { flex: 1 1 auto; display: flex; flex-direction: column; padding: 0.5vmin !important; overflow: hidden; position: relative; min-height: 0; }
+        .text-center-box { align-items: center; justify-content: center; text-align: center; }
+        .slider-wrapper { flex: 3.5; } .schedule-area { flex: 5; } .time-out-card { flex: 1.5; }
+        .clock-box { font-size: 3.5rem; font-weight: bold; color: #333; line-height: 1; }
+        .date-box { font-size: 1.1rem; color: #555; }
+        .weather-temp { font-size: 3rem; font-weight: bold; color: var(--header-cyan); line-height: 1; }
+        .countdown-box { font-size: 4rem; font-weight: bold; color: white; line-height: 1; }
+        .time-table, .duty-table { width: 100%; border-collapse: collapse; height: 100%; table-layout: fixed; }
+        .time-table th, .duty-table th { background: #eee; padding: 0.5vmin; position: sticky; top: 0; z-index: 2; font-size: 1rem; text-align: center; }
+        .time-table td, .duty-table td { border-bottom: 1px solid #ddd; padding: 0; text-align: center; vertical-align: middle; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #nobetci-table td, #nobetci-table th { text-align: start; padding: 1vmin; font-weight: 500; }
+        .active-slot { background-color: #f0e4c6 !important; font-weight: bold; border-left: 0.8vmin solid #d32f2f; }
+        .duyuru-container { height: 100%; display: flex; align-items: center; justify-content: center; }
+        .duyuru-text { opacity: 0; transform: translateY(20px); transition: all 0.5s; font-size: 1.5rem; font-weight: 600; text-align: center; }
+        .duyuru-text.aktif { opacity: 1 !important; transform: translateY(0) !important; }
+        .bg-blue { background-color: var(--header-blue) !important; } .bg-cyan { background-color: var(--header-cyan) !important; } .bg-purple { background-color: var(--header-purple) !important; } .bg-red { background-color: var(--header-red) !important; } .bg-light-gray { background-color: #f8f9fa; }
+        .site-footer { height: 6vmin; background: linear-gradient(90deg, #0d47a1 0%, #1565c0 100%); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 2vmin; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1050; border-top: 0.4vmin solid #fbc02d; font-size: 1rem; }
+        .footer-school-name { font-weight: 600; font-size: 2rem; }
+        .list-group-item { background: transparent; padding: 0.5vmin 1vmin; font-size: 1rem; }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+        <div class="main-grid">
+            <div class="col-panel">
+                <div class="pano-card" style="flex: 0.8;">
+                    <div class="card-header bg-cyan">SAAT & TARİH</div>
+                    <div class="card-body text-center-box">
+                        <i class="bi bi-clock fw-bold" style="font-size: 3rem; color: var(--header-blue);"></i>
+                        <div class="clock-box" id="liveClock">--:--</div>
+                        <div class="date-box fw-semibold" id="dateTime">--.--.2025</div>
+                    </div>
+                </div>
+                <div class="pano-card" style="flex: 1;">
+                    <div class="card-header bg-success">HAVA DURUMU</div>
+                    <div class="card-body text-center-box">
+                        <img id="js-weather-icon" src="https://openweathermap.org/img/wn/02d@2x.png" style="width: 8vmin;">
+                        <div id="js-weather-temp" class="weather-temp">--°</div>
+                        <div id="js-weather-desc" class="text-secondary fw-bold">Yükleniyor</div>
+                    </div>
+                </div>
+                <div class="pano-card bg-light-gray" style="flex: 2;">
+                    <div class="card-header bg-red">DUYURULAR</div>
+                    <div class="card-body">
+                        <div class="duyuru-container"><div id="duyuru-metni" class="duyuru-text">Duyurular yükleniyor...</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-panel">
+                <div class="pano-card slider-wrapper">
+                    <div id="carouselExample" class="carousel slide h-100" data-bs-ride="carousel">
+                        <div class="carousel-inner h-100" id="new-foto">
+                            <div class="carousel-item active h-100">
+                                <img src="https://picsum.photos/1200/600" class="d-block w-100 h-100" style="object-fit: cover;">
+                                <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.5); border-radius: 10px;"><h5>Okul Dijital Pano Sistemi</h5></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pano-card schedule-area">
+                    <div class="card-header bg-blue">DERS PROGRAMI</div>
+                    <div class="card-body">
+                        <table class="time-table">
+                            <thead><tr><th>Ders</th><th>Giriş</th><th>Çıkış</th><th>Süre</th></tr></thead>
+                            <tbody id="scheduleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="pano-card bg-light-gray time-out-card">
+                    <div class="card-header bg-red">KALAN SÜRE</div>
+                    <div class="card-body text-center-box">
+                        <div class="status-text fw-bold" id="bellStatus">Kontrol Ediliyor...</div>
+                        <div class="countdown-box fw-bold" id="countdown">--:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-panel">
+                <div class="pano-card" style="flex: 2;">
+                    <div class="card-header bg-blue">NÖBETÇİ ÖĞRETMENLER</div>
+                    <div class="card-body">
+                        <div class="border-bottom flex-row d-flex justify-content-start align-items-center p-2">
+                            <div class="text-muted fw-bold m-1">Nöbetçi Mdr. Yrd:</div><div id="amir-box" class="fw-bold text-danger">-</div>
+                        </div>
+                        <div style="flex-grow: 1; overflow-y: auto;">
+                            <table class="duty-table" id="nobetci-table"><thead><tr class="text-muted"><th>Kat</th><th>Öğretmen</th></tr></thead><tbody id="duty-body"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+                <div class="pano-card" style="flex: 1;">
+                    <div class="card-header bg-red">RAPORLU / İZİNLİ</div>
+                    <div class="card-body" style="overflow-y: auto;"><ul id="raporlu-listesi" class="list-group list-group-flush w-100"></ul></div>
+                </div>
+                <div class="pano-card" style="flex: 1;">
+                    <div class="card-header bg-purple">BELİRLİ GÜNLER</div>
+                    <div class="card-body" style="overflow-y: auto;"><ul id="ozel-gun-listesi" class="list-group list-group-flush w-100 text-center"></ul></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-logo">Bilişim Teknolojileri - Okul Dijital Panosu v1.0</div>
+        <div class="footer-school-name">BORSA İSTANBUL MEHMET AKİF ERSOY M.T.A.L</div>
+        <div class="footer-creator text-reset" id="author">Hazırlayan:</div>
+    </footer>
+
+  <script>
+        // --- AYARLAR ---
+        var SHEET_ID = "1Nc2616kCclHxdIBfxSdcL9XOGXF1vRG_JEtwNqQHkvw";
+        var LAT = 40.77; 
+        var LON = 30.4;
+
+        console.log("Sistem Başlatılıyor..."); 
+
+        // --- YARDIMCI FONKSİYONLAR ---
+        function sifirEkle(sayi) { return sayi < 10 ? "0" + sayi : sayi; }
+
+        // Google Sheets'ten gelen tarih verisini (Date(y,m,d) veya Text) düzeltir
+        function googleDateDonustur(cellVal) {
+            if(!cellVal) return null;
+            var strVal = cellVal.toString();
+            // Google formatı: "Date(2026,0,1)" (Ay 0'dan başlar)
+            if(strVal.indexOf("Date") > -1) {
+                var matches = strVal.match(/\d+/g);
+                if(matches) return new Date(matches[0], matches[1], matches[2]);
+            } 
+            // Düz metin formatı: "01.01.2026"
+            else {
+                var parts = strVal.split(".");
+                if(parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
+            }
+            return null;
+        }
+
+        // --- 1. ZAMAN ÇİZELGESİ (DERS PROGRAMI) ---
+        var schedule = [];
+        function scheduleVerisiGeldi(json) {
+            var rows = json.table.rows.slice(1);
+            var veriler = rows.map(function(row) {
+                return {
+                    no: row.c[0] ? row.c[0].v : "",
+                    start: row.c[1] ? row.c[1].v : "",
+                    end: row.c[2] ? row.c[2].v : ""
+                };
+            });
+            schedule.length = 0;
+            veriler.forEach(function(item) {
+                if (item.no && item.start && item.end) {
+                    schedule.push(item);
+                }
+            });
+            renderTable();
+            updateSystem(); 
+        }
+
+        function renderTable() {
+            var tbody = document.getElementById("scheduleBody");
+            if (!tbody) return;
+            var html = "";
+            schedule.forEach(function(item) {
+                html += "<tr id='row-" + item.no + "'><td>" + item.no + ". Ders</td><td>" + item.start + "</td><td>" + item.end + "</td><td>40dk</td></tr>";
+            });
+            tbody.innerHTML = html;
+        }
+
+        // --- 2. CANLI SAAT VE SİSTEM ---
+        function updateClock() {
+            var now = new Date();
+            var dateEl = document.getElementById("dateTime");
+            var clockEl = document.getElementById("liveClock");
+            if (dateEl) dateEl.innerText = now.toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric", weekday: "long" });
+            if (clockEl) clockEl.innerText = now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function updateSystem() {
+            updateClock();
+            if (schedule.length === 0) return;
+
+            var now = new Date();
+            var currentMin = now.getHours() * 60 + now.getMinutes();
+            var seconds = now.getSeconds();
+            
+            var trs = document.querySelectorAll("tr");
+            for(var k=0; k<trs.length; k++) { trs[k].classList.remove("active-slot"); }
+
+            var activeFound = false;
+            var statusEl = document.getElementById("bellStatus");
+            var countEl = document.getElementById("countdown");
+
+            if (!statusEl || !countEl) return;
+
+            for (var i = 0; i < schedule.length; i++) {
+                var lesson = schedule[i];
+                var sParts = lesson.start.split(":");
+                var eParts = lesson.end.split(":");
+                var startMin = parseInt(sParts[0]) * 60 + parseInt(sParts[1]);
+                var endMin = parseInt(eParts[0]) * 60 + parseInt(eParts[1]);
+
+                if (currentMin >= startMin && currentMin < endMin) {
+                    var diffMin = endMin - currentMin - 1;
+                    var diffSec = 60 - seconds;
+                    statusEl.innerText = lesson.no + ". DERSİN BİTİMİNE:";
+                    countEl.innerText = diffMin + ":" + (diffSec < 10 ? "0" + diffSec : diffSec);
+                    var row = document.getElementById("row-" + lesson.no);
+                    if (row) row.classList.add("active-slot");
+                    countEl.style.color = "#dc3545"; 
+                    activeFound = true;
+                    break;
+                }
+                if (i < schedule.length - 1) {
+                    var nextLessonStart = schedule[i + 1].start.split(":");
+                    var nextStartMin = parseInt(nextLessonStart[0]) * 60 + parseInt(nextLessonStart[1]);
+                    if (currentMin >= endMin && currentMin < nextStartMin) {
+                        var diffMin = nextStartMin - currentMin - 1;
+                        var diffSec = 60 - seconds;
+                        statusEl.innerText = "TENEFFÜS";
+                        countEl.innerText = diffMin + ":" + (diffSec < 10 ? "0" + diffSec : diffSec);
+                        countEl.style.color = "#198754"; 
+                        activeFound = true;
+                        break;
+                    }
+                }
+            }
+            if (!activeFound) {
+                statusEl.innerText = "GİRİŞ / ÇIKIŞ";
+                countEl.innerText = "--:--";
+                countEl.style.color = "#333";
+            }
+        }
+        setInterval(updateSystem, 1000);
+
+        // --- 3. HAVA DURUMU ---
+        function havaDurumunuGetir() {
+            var url = "https://api.open-meteo.com/v1/forecast?latitude=" + LAT + "&longitude=" + LON + "&current_weather=true&timezone=auto&_=" + Date.now();
+            fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+                var w = data.current_weather;
+                document.getElementById("js-weather-temp").innerText = Math.round(w.temperature) + "°";
+                var d = "Bilinmiyor", icon = "01d", c = w.weathercode;
+                if(c===0) {d="Açık"; icon="01d";} else if(c<=3) {d="Bulutlu"; icon="02d";} else if(c<=48) {d="Sisli"; icon="50d";} else if(c<=67) {d="Yağmurlu"; icon="10d";} else if(c<=77) {d="Karlı"; icon="13d";} else if(c<=82) {d="Sağanak"; icon="09d";} else {d="Fırtına"; icon="11d";}
+                document.getElementById("js-weather-desc").innerText = d;
+                document.getElementById("js-weather-icon").src = "https://openweathermap.org/img/wn/" + icon + "@2x.png";
+            }).catch(function(e){ console.error(e); });
+        }
+        havaDurumunuGetir(); setInterval(havaDurumunuGetir, 1800000);
+
+        // --- 4. VERİ ÇEKME MOTORU ---
+        function loadData(sheetName, query, callbackName) {
+            var old = document.getElementById("script-" + sheetName);
+            if (old) old.remove();
+            var script = document.createElement("script");
+            script.id = "script-" + sheetName;
+            script.src = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?sheet=" + sheetName + "&tq=" + encodeURIComponent(query) + "&tqx=responseHandler:" + callbackName + "&_=" + Date.now();
+            document.body.appendChild(script);
+        }
+
+        // --- 5. NÖBETÇİLER ---
+        function nobetciVerisiGeldi(json) {
+            try {
+                var rows = json.table.rows;
+                var bugun = new Date();
+                var bugunStr = sifirEkle(bugun.getDate()) + "." + sifirEkle(bugun.getMonth() + 1) + "." + bugun.getFullYear();
+                
+                var kayit = null;
+                for(var i=0; i<rows.length; i++) {
+                    var r = rows[i];
+                    var cellVal = r.c[0] ? (r.c[0].f || r.c[0].v).toString() : "";
+                    
+                    var satirTarihi = "";
+                    var tarihObj = googleDateDonustur(cellVal);
+                    if(tarihObj) satirTarihi = sifirEkle(tarihObj.getDate()) + "." + sifirEkle(tarihObj.getMonth()+1) + "." + tarihObj.getFullYear();
+
+                    if(satirTarihi === bugunStr) {
+                         kayit = {
+                            kat5: r.c[1]?r.c[1].v:"-", kat4: r.c[2]?r.c[2].v:"-", kat3: r.c[3]?r.c[3].v:"-", 
+                            kat2: r.c[4]?r.c[4].v:"-", zemin: r.c[5]?r.c[5].v:"-", bahce1: r.c[6]?r.c[6].v:"-",
+                            bahce2: r.c[7]?r.c[7].v:"-", atolye: r.c[8]?r.c[8].v:"-", amir: r.c[9]?r.c[9].v:"-"
+                        };
+                        break;
+                    }
+                }
+                
+                if(kayit) {
+                    document.getElementById("amir-box").innerText = kayit.amir;
+                    document.getElementById("duty-body").innerHTML = 
+                        "<tr><td>4. Kat Sol</td><td>" + kayit.kat5 + "</td></tr>" +
+                        "<tr><td>4. Kat Sağ</td><td>" + kayit.kat4 + "</td></tr>" +
+                        "<tr><td>3. Kat</td><td>" + kayit.kat3 + "</td></tr>" +
+                        "<tr><td>2. Kat</td><td>" + kayit.kat2 + "</td></tr>" +
+                        "<tr><td>Zemin</td><td>" + kayit.zemin + "</td></tr>" +
+                        "<tr><td>Bahçe 1</td><td>" + kayit.bahce1 + "</td></tr>" +
+                        "<tr><td>Bahçe 2</td><td>" + kayit.bahce2 + "</td></tr>" +
+                        "<tr><td>Atölye</td><td>" + kayit.atolye + "</td></tr>";
+                } else {
+                    document.getElementById("amir-box").innerText = "-";
+                    document.getElementById("duty-body").innerHTML = "<tr><td colspan='2' class='text-center text-muted'>Bugün (" + bugunStr + ") kayıt yok.</td></tr>";
+                }
+            } catch(e){console.log(e);}
+        }
+
+        // --- 6. HABERLER ---
+        function haberVerisiGeldi(json) {
+            var html = "", first = true;
+            json.table.rows.forEach(function(row) {
+                var baslik = row.c[1]?row.c[1].v:"", foto = row.c[3]?row.c[3].v:"";
+                if(foto && baslik) {
+                    html += "<div class='carousel-item " + (first?"active":"") + " h-100'><img src='" + foto + "' class='d-block w-100 h-100' style='object-fit:cover;'><div class='carousel-caption d-none d-md-block' style='background:rgba(0,0,0,0.6);border-radius:10px;'><h5>" + baslik + "</h5></div></div>";
+                    first = false;
+                }
+            });
+            if(html) document.querySelector(".carousel-inner").innerHTML = html;
+        }
+
+        // --- 7. DOĞUM GÜNLERİ ---
+        function dogumGunuVerisiGeldi(json) {
+            var html = "";
+            json.table.rows.forEach(function(row) {
+                if(row.c[0] && row.c[0].v) html += "<li class='list-group-item d-flex justify-content-between'><div>🎂 " + row.c[0].v + "</div><span class='badge bg-light text-dark border'>" + (row.c[1]?row.c[1].v:"") + "</span></li>";
+            });
+            document.getElementById("dogum-gunu-listesi").innerHTML = html || "<li class='list-group-item text-center text-muted'>Bugün doğum günü yok.</li>";
+        }
+
+        // --- 8. RAPORLULAR ---
+        function raporluVerisiGeldi(json) {
+            var days = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+            var todayName = days[new Date().getDay()].toLowerCase();
+            var row = json.table.rows.find(function(r) { return (r.c[0]?r.c[0].v:"").trim().toLowerCase() === todayName; });
+            var html = "";
+            if(row && row.c[1] && row.c[1].v) {
+                var isimler = row.c[1].v.split(",");
+                for(var i=0; i<isimler.length; i++) {
+                     if(isimler[i].trim()) html += "<li class='list-group-item fw-bold text-danger'><i class='bi bi-bandaid me-2'></i>" + isimler[i].trim() + "</li>";
+                }
+            }
+            document.getElementById("raporlu-listesi").innerHTML = html || "<li class='list-group-item text-center text-success fw-bold'>Raporlu öğretmen yok.</li>";
+        }
+
+        // --- 9. DUYURULAR ---
+        function duyuruVerisiGeldi(json) {
+            var list = [];
+            if(json.table.rows.length > 0) {
+                 list = json.table.rows.map(function(r){ return r.c[0]?r.c[0].v:null; }).filter(function(v){ return v!=null; });
+            }
+            if(list.length === 0) list = ["Duyuru yok."];
+            
+            var idx = 0;
+            var el = document.getElementById("duyuru-metni");
+            setInterval(function() {
+                el.classList.remove("aktif");
+                setTimeout(function() {
+                    el.innerHTML = list[idx];
+                    el.classList.add("aktif");
+                    idx = (idx + 1) % list.length;
+                }, 500);
+            }, 5000);
+        }
+
+        // --- 10. BELİRLİ GÜNLER (E-TABLO ENTEGRASYONLU) ---
+        function belirliGunlerVerisiGeldi(json) {
+            try {
+                var listElement = document.getElementById("ozel-gun-listesi");
+                if (!listElement) return;
+                listElement.innerHTML = "";
+
+                var bugun = new Date();
+                bugun.setHours(0,0,0,0); // Saat farkını yok say
+
+                var events = [];
+                var rows = json.table.rows;
+
+                // Tablodan verileri oku ve düzelt
+                for(var i=0; i<rows.length; i++) {
+                    var r = rows[i];
+                    var baslangic = googleDateDonustur(r.c[0] ? (r.c[0].f || r.c[0].v) : "");
+                    var bitis = googleDateDonustur(r.c[1] ? (r.c[1].f || r.c[1].v) : "");
+                    var baslik = r.c[2] ? r.c[2].v : "";
+
+                    if(baslangic && baslik) {
+                        // Eğer bitiş tarihi boşsa, başlangıç tarihiyle aynı say
+                        if(!bitis) bitis = new Date(baslangic);
+                        events.push({ start: baslangic, end: bitis, title: baslik });
+                    }
+                }
+
+                // 1. Bugün aktif olan bir olay var mı?
+                var activeEvent = events.find(function(e) {
+                    return bugun >= e.start && bugun <= e.end;
+                });
+
+                if (activeEvent) {
+                    listElement.innerHTML = "<li class='list-group-item ozel-gun-item bg-light'><span class='badge bg-danger mb-2'>BUGÜN</span><br>" + activeEvent.title + "</li>";
+                } else {
+                    // 2. Bugün yoksa, gelecekteki en yakın olayı bul
+                    // Tarihe göre sırala (Eskiden yeniye)
+                    events.sort(function(a, b) { return a.start - b.start; });
+                    
+                    var nextEvent = events.find(function(e) { return e.start > bugun; });
+
+                    if (nextEvent) {
+                        var d = nextEvent.start.getDate();
+                        var m = nextEvent.start.getMonth() + 1;
+                        var dateStr = sifirEkle(d) + "." + sifirEkle(m) + "." + nextEvent.start.getFullYear();
+                        listElement.innerHTML = "<li class='list-group-item ozel-gun-item'><span class='badge bg-secondary mb-1'>YAKLAŞIYOR (" + dateStr + ")</span><br>" + nextEvent.title + "</li>";
+                    } else {
+                        listElement.innerHTML = "<li class='list-group-item text-muted small'>Yakın zamanda özel gün yok.</li>";
+                    }
+                }
+            } catch(e) { console.log("Özel Gün Hatası:", e); }
+        }
+
+        // --- ANA YÖNETİCİ ---
+        function refreshAll() {
+            loadData("Nöbet", "", "nobetciVerisiGeldi");
+            loadData("Haberler", "", "haberVerisiGeldi");
+            loadData("DogumGunleri", "", "dogumGunuVerisiGeldi");
+            loadData("Raporlular", "", "raporluVerisiGeldi");
+            loadData("DersProgrami", "", "scheduleVerisiGeldi");
+            loadData("Duyurular", "select A", "duyuruVerisiGeldi");
+            // ARTIK BU DA E-TABLODAN GELİYOR:
+            loadData("BelirliGunler", "", "belirliGunlerVerisiGeldi");
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("author").innerHTML = "Hazırlayan: <i class='bi bi-code-slash'></i> Kadir KAVAL <i class='bi bi-code-slash'></i>";
+            refreshAll();
+            setInterval(refreshAll, 60000);
+            setTimeout(function(){ window.location.reload(); }, 3600000);
+        });
+    </script>
+  </body>
+</html>
